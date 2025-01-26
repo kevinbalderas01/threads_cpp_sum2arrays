@@ -1,35 +1,47 @@
 #include <iostream>
+#include <omp.h>
 
-#ifdef _OPENMP
-	#include <omp.h>
-#else
-	#define omp_get_thread_num() 0
-#endif
+#define N 1000
+#define chunk 100
+#define mostrar 10
 
-#define N 24
-
-using namespace std;
-int tid;
+void imprimeArreglo(float* d);
 
 int main()
 {
-	cout << "Estableciendo la cantidad de Hilos!\n";
-	int nHilos;
-	cout << "Cuantos hilos quieres trabajar: ";
-	cin >> nHilos;
+	std::cout << "Sumando arreglos en paralelo!\n";
+	float a[N], b[N], c[N];
+	int i;
 
-	#ifdef _OPENMP
-		omp_set_num_threads(nHilos);
-	#endif
+	for (i = 0; i < N; i++)
+	{
+		a[i] = i * 10;
+		b[i] = (i + 30) * 3.7;
 
-	#pragma omp parallel private(tid)
-		{
-			tid = omp_get_thread_num();
-			cout << "El thread " << tid << " esta en marcha " << endl;
-			cout << "El thread " << tid << " ha terminado " << endl;
+	}
+	int pedazos = chunk;
+	
 
-		}
+	#pragma omp parallel for shared(a, b, c , pedazos) private(i) schedule(static, pedazos)
+	
+	for (i = 0; i < N; i++)
+		c[i] = a[i] + b[i];
 
+	std::cout << "Imprimiendo los primeros " << mostrar << " valores del arreglo a: " << std::endl;
+	imprimeArreglo(a);
+	std::cout << "Imprimiendo los primeros " << mostrar << " valores del arreglo b: " << std::endl;
+	imprimeArreglo(b);
+	std::cout << "Imprimiendo los primeros " << mostrar << " valores del arreglo c: " << std::endl;
+	imprimeArreglo(c);		
+	
+}
 
+void imprimeArreglo(float* d)
+{
+	for (int x = 0; x < mostrar; x++)
+	{
+		std::cout << d[x] << " - ";
+	}
 
+	std::cout << std::endl;
 }
